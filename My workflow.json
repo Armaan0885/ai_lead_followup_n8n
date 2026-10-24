@@ -1,0 +1,271 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "New lead",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name"
+            },
+            {
+              "fieldLabel": "Email"
+            },
+            {
+              "fieldLabel": "Company"
+            },
+            {
+              "fieldLabel": "Message",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "57d765f4-8dc8-4539-b1cb-6b58d82f58a6",
+      "name": "On form submission",
+      "webhookId": "f3d1a18d-1a91-43e1-be43-6fa99abc278c"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a sales assistant. Here is a new lead:\nName: {{ $json.Name }}\nEmail: {{ $json.Email }}\nCompany: {{ $json.Company }}\nMessage: {{ $json.Message }}\n\nReturn ONLY valid JSON with these keys:\nscore (hot, warm or cold), reason (one sentence), email_subject, email_body (polite, under 80 words, no placeholders)."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0680829f-cfba-4e94-a555-d1749a6c890c",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "T31YMXZBWKuHXRei",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const parts = $input.first().json.content.parts;\nconst raw = (parts.find(p => p.text) || {}).text || '';\nconst clean = raw.replace(/```json|```/g, '').trim();\n\nlet data;\ntry {\n  data = JSON.parse(clean);\n} catch (e) {\n  data = {\n    score: 'unknown',\n    reason: 'Could not parse model output',\n    email_subject: '',\n    email_body: ''\n  };\n}\n\nconst lead = $('On form submission').first().json;\n\nreturn [{\n  json: {\n    name: lead.Name,\n    email: lead.Email,\n    company: lead.Company,\n    message: lead.Message,\n    ...data\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "301f7d99-8ffb-44e6-a271-94cc51f83d90",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wQqQrafuPfx2fuAc8OlOTWg3wkmIRETyjGxGXy40zpA",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wQqQrafuPfx2fuAc8OlOTWg3wkmIRETyjGxGXy40zpA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wQqQrafuPfx2fuAc8OlOTWg3wkmIRETyjGxGXy40zpA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email_subject",
+              "displayName": "email_subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        816,
+        0
+      ],
+      "id": "0038aef3-3202-4e6a-a7be-6fcd4a9c2736",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A2SpYPHKhrWyWJJa",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('Code in JavaScript').item.json.email_subject }}",
+        "message": "={{ $('Code in JavaScript').item.json.email_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "1f5ed1e9-7154-43ec-98a0-fa2a34a83252",
+      "name": "Create a draft",
+      "webhookId": "d6b84648-30ba-41bb-965e-2787e9525ada",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JjJVFqDk13EtTYxS",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "37fe628e-5d94-47fd-bbf3-7b188e1e0b09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "14513e8f01e6c8c0b98e1ece8d391cd739fa296e4750fbac7538b811ca1a2cbd"
+  },
+  "nodeGroups": [],
+  "id": "Zv5U9xp2QhdxBC4O",
+  "tags": []
+}
