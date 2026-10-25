@@ -17,6 +17,9 @@ An n8n workflow that takes a new lead from a web form, scores it with the Gemini
 ## Workflow
 ![Workflow screenshot](screenshot.png)
 
+## Demo
+[https://drive.google.com/file/d/1YjygIsAZm9GlbBG78yr15Vj_c0_3q08c/view?usp=sharing]
+
 ## How to run it
 1. Install and start n8n: `npx n8n`
 2. Import the workflow JSON file (Workflows, menu, Import from file).
